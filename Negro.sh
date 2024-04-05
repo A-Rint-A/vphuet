@@ -15,46 +15,35 @@
 #
 # Attribution required: please include my name in any derivative and let me
 # know how you have improved it!
-
 # =====================================================
-
 # Define your own values for these variables
 # - IPsec pre-shared key, VPN username and password
 # - All values MUST be placed inside 'single quotes'
 # - DO NOT use these special characters within values: \ " '
-
 YOUR_IPSEC_PSK='y3478rhnf87f3'
 YOUR_USERNAME='Negro'
 YOUR_PASSWORD='YR3474rfdfh32h8'
-
 # =====================================================
-
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
 exiterr() { echo "Error: $1" >&2; exit 1; }
-
 check_ip() {
   IP_REGEX='^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
   printf '%s' "$1" | tr -d '\n' | grep -Eq "$IP_REGEX"
 }
-
 check_dns_name() {
   FQDN_REGEX='^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
   printf '%s' "$1" | tr -d '\n' | grep -Eq "$FQDN_REGEX"
 }
-
 check_root() {
   if [ "$(id -u)" != 0 ]; then
     exiterr "Script must be run as root. Try 'sudo sh $0'"
   fi
 }
-
 check_vz() {
   if [ -f /proc/user_beancounters ]; then
     exiterr "OpenVZ VPS is not supported."
   fi
 }
-
 check_lxc() {
   # shellcheck disable=SC2154
   if [ "$container" = "lxc" ] && [ ! -e /dev/ppp ]; then
@@ -65,7 +54,6 @@ EOF
   exit 1
   fi
 }
-
 check_os() {
   rh_file="/etc/redhat-release"
   if [ -f "$rh_file" ]; then
@@ -133,7 +121,6 @@ EOF
     fi
   fi
 }
-
 check_iface() {
   def_iface=$(route 2>/dev/null | grep -m 1 '^default' | grep -o '[^ ]*$')
   if [ "$os_type" != "alpine" ]; then
@@ -158,7 +145,6 @@ check_iface() {
     esac
   fi
 }
-
 check_creds() {
   [ -n "$YOUR_IPSEC_PSK" ] && VPN_IPSEC_PSK="$YOUR_IPSEC_PSK"
   [ -n "$YOUR_USERNAME" ] && VPN_USER="$YOUR_USERNAME"
@@ -178,20 +164,17 @@ check_creds() {
       ;;
   esac
 }
-
 check_dns() {
   if { [ -n "$VPN_DNS_SRV1" ] && ! check_ip "$VPN_DNS_SRV1"; } \
     || { [ -n "$VPN_DNS_SRV2" ] && ! check_ip "$VPN_DNS_SRV2"; }; then
     exiterr "The DNS server specified is invalid."
   fi
 }
-
 check_server_dns() {
   if [ -n "$VPN_DNS_NAME" ] && ! check_dns_name "$VPN_DNS_NAME"; then
     exiterr "Invalid DNS name. 'VPN_DNS_NAME' must be a fully qualified domain name (FQDN)."
   fi
 }
-
 check_client_name() {
   if [ -n "$VPN_CLIENT_NAME" ]; then
     name_len="$(printf '%s' "$VPN_CLIENT_NAME" | wc -m)"
@@ -201,7 +184,6 @@ check_client_name() {
     fi
   fi
 }
-
 wait_for_apt() {
   count=0
   apt_lk=/var/lib/apt/lists/lock
@@ -215,7 +197,6 @@ wait_for_apt() {
     sleep 3
   done
 }
-
 install_pkgs() {
   if ! command -v wget >/dev/null 2>&1; then
     if [ "$os_type" = "ubuntu" ] || [ "$os_type" = "debian" ] || [ "$os_type" = "raspbian" ]; then
@@ -243,7 +224,6 @@ install_pkgs() {
     ) || exiterr "'apk add' failed."
   fi
 }
-
 get_setup_url() {
   base_url1="https://raw.githubusercontent.com/hwdsl2/setup-ipsec-vpn/master"
   base_url2="https://gitlab.com/hwdsl2/setup-ipsec-vpn/-/raw/master"
@@ -259,7 +239,6 @@ get_setup_url() {
   setup_url1="$base_url1/$sh_file"
   setup_url2="$base_url2/$sh_file"
 }
-
 run_setup() {
   status=0
   if tmpdir=$(mktemp --tmpdir -d vpn.XXXXX 2>/dev/null); then
@@ -287,7 +266,6 @@ run_setup() {
     exiterr "Could not create temporary directory."
   fi
 }
-
 vpnsetup() {
   check_root
   check_vz
@@ -302,8 +280,6 @@ vpnsetup() {
   get_setup_url
   run_setup
 }
-
 ## Defer setup until we have the complete script
 vpnsetup "$@"
-
 exit "$status"
